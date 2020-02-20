@@ -16,3 +16,6 @@ output/
 # Ignore external softwares
 external/
 
+# Ignore local-only files
+*local_only/
+

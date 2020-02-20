@@ -21,22 +21,6 @@ if __name__ == '__main__':
     n_activities = len(el.groupby('activity'))
     n_resources = len(el.groupby('resource'))
 
-    '''
-    import re
-    regex = re.compile(r'_\d\d\d')
-    code_set = set()
-    for code in set(el['action_code']):
-        match = regex.search(code)
-        if match is not None:
-            code_set.add(code[:match.start()])
-        else:
-            exit('[Error] Non-matching action code')
-
-    print('total# of codes: {}'.format(len(code_set)))
-    print(code_set)
-    '''
-
-
     fmt = '%Y/%m/%d %H:%M:%S.%f'
     start_time = datetime.strptime(sorted(el['timestamp'])[0], fmt)
     end_time = datetime.strptime(sorted(el['timestamp'])[-1], fmt)
