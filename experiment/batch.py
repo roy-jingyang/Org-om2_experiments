@@ -16,7 +16,7 @@ if __name__ == '__main__':
     
 
     def run_process(path):
-        subprocess.check_call(['python', 'main/OrgModelMining/auto/flow_eval.py', 
+        subprocess.check_call(['python', './execute.py', 
             fn_setup, dirout, ','.join(path[1:-1])])
 
     list(map(run_process, test_instances))
