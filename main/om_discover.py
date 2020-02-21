@@ -1,10 +1,17 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('fn_event_log', 
+    help='Path to input log file')
+parser.add_argument('fnout_org_model', 
+    help='Path to output model file')
 
-fn_event_log = sys.argv[1]
-fnout_org_model = sys.argv[2]
+args = parser.parse_args()
+
+fn_event_log = args.fn_event_log
+fnout_org_model = args.fnout_org_model
 
 if __name__ == '__main__':
     # read event log as input
@@ -37,7 +44,7 @@ if __name__ == '__main__':
         units = ['hour', 'day', 'weekday']
         for i, unit in enumerate(units):
             print('\t\t{}. {}'.format(i, unit))
-        sp_time_unit = input()
+        sp_time_unit = units[int(input())]
         exec_mode_miner = direct_groupby.FullMiner(el,
             case_attr_name=sp_case_attr_name,
             resolution=sp_time_unit)
@@ -58,25 +65,28 @@ if __name__ == '__main__':
         exec_mode_miner = direct_groupby.ATTTMiner(el, 
             resolution=resolution)
     elif mode_learning_option == 14: # NOTE: temporarily disabled
-        print('Input the path of the partitioning file:', end=' ')
+        print('Input the path to the trace clustering report file:', end=' ')
         fn_partition = input()
         exec_mode_miner = informed_groupby.TraceClusteringCTMiner(
             el, fn_partition=fn_partition)
 
     elif mode_learning_option == 2:
-        print('Input the path of the partitioning file:', end=' ')
+        print('Input the path to the trace clustering report file:', end=' ')
         fn_partition = input()
         print('\tInput a number to choose a desired time unit:')
         units = ['hour', 'day', 'weekday']
         for i, unit in enumerate(units):
             print('\t\t{}. {}'.format(i, unit))
-        sp_time_unit = input()
+        sp_time_unit = units[int(input())]
         exec_mode_miner = informed_groupby.TraceClusteringFullMiner(el,
             fn_partition=fn_partition,
             resolution=sp_time_unit)
     else:
         raise ValueError('Option not recognized')
 
+    with open(fnout_org_model + '.mode_mappings', 'w') as fout:
+        exec_mode_miner.to_file(fout)
+        print('\n[Execution mode mappings exported]')
     # Derive resource log
     rl = exec_mode_miner.derive_resource_log(el)
 
