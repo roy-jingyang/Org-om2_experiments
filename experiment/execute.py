@@ -65,14 +65,9 @@ def execute(setup, seq_ix, exp_dirpath):
     rl = exec_mode_miner.derive_resource_log(el)
 
     # characterize resources
-    step += 1
-    profiler = _import_block(sequence[step]['invoke'])
-    params = sequence[step].get('params', None)
-    if params is None:
-        profiles = profiler(rl)
-    else:
-        params = eval(params)
-        profiles = profiler(rl, **params)
+    from orgminer.ResourceProfiler.raw_profiler import \
+        count_execution_frequency
+    profiles = count_execution_frequency(rl)
 
     # discover resource grouping
     step += 1
@@ -104,6 +99,7 @@ def execute(setup, seq_ix, exp_dirpath):
         om = assigner(ogs, rl, **params)
 
     # TODO: Hard-coded evalution measure (TBD)
+    '''
     # 1. Intrinsic evaluation of clustering (by Silhouette score)
     from orgminer.Evaluation.m2m.cluster_validation import silhouette_score
     from numpy import mean
@@ -113,6 +109,7 @@ def execute(setup, seq_ix, exp_dirpath):
     else:
         silhouette = mean(list(
             silhouette_score(ogs, profiles).values()))
+    '''
 
     # TODO: Hard-coded evalution measure (TBD) cont.
     # 2. (New) Fitness & Precision values
@@ -147,7 +144,7 @@ def execute(setup, seq_ix, exp_dirpath):
 
     return ('{}-{}-{}'.format(
         exec_mode_miner_name, discoverer_name, assigner_name), 
-        silhouette, 
+        #silhouette, 
         k, fitness, precision)
 
 if __name__ == '__main__':
