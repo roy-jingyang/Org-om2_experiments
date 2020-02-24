@@ -20,37 +20,25 @@
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">-3051.6792</data>
-<data key="y">-226.2225</data>
+<data key="x">-2405.3586</data>
+<data key="y">-253.3371</data>
 </node>
 <node id="2">
-<data key="label">Phase 1: AT only</data>
+<data key="label">ATonly</data>
 <data key="invoke">orgminer.ExecutionModeMiner.direct_groupby.ATonlyMiner</data>
-<data key="phase">1</data>
+<data key="phase">1: Execution Mode Learning</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">-1604.192</data>
-<data key="y">63.124344</data>
-</node>
-<node id="3">
-<data key="label">Phase 2.1: CountExecutionFrequency</data>
-<data key="invoke">orgminer.ResourceProfiler.raw_profiler.count_execution_frequency</data>
-<data key="params"/>
-<data key="phase">2.1</data>
-<data key="size">25.0</data>
-<data key="r">192</data>
-<data key="g">192</data>
-<data key="b">192</data>
-<data key="x">-762.20135</data>
-<data key="y">-186.67142</data>
+<data key="x">-881.3352</data>
+<data key="y">76.67793</data>
 </node>
 <node id="5">
-<data key="label">Phase 2.2: MOC</data>
+<data key="label">MOC</data>
 <data key="invoke">orgminer.OrganizationalModelMiner.clustering.overlap.moc</data>
-<data key="params">{'n_groups': list(range(8, 9)), 'init': 'kmeans'}</data>
-<data key="phase">2.2</data>
+<data key="params">{'n_groups': list(range(2, 11)), 'init': 'kmeans'}</data>
+<data key="phase">2: Resource Grouping Discovery</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
@@ -59,16 +47,16 @@
 <data key="y">-520.828</data>
 </node>
 <node id="8">
-<data key="label">Phase 2.3: FullRecall</data>
+<data key="label">FullRecall</data>
 <data key="invoke">orgminer.OrganizationalModelMiner.mode_assignment.full_recall</data>
 <data key="params"/>
-<data key="phase">2.3</data>
+<data key="phase">3: Execution Mode Assignment</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">1166.2996</data>
-<data key="y">-130.50238</data>
+<data key="x">1202.4336</data>
+<data key="y">-69.22571</data>
 </node>
 <node id="13">
 <data key="label">(END)</data>
@@ -81,10 +69,10 @@
 <data key="y">-224.4036</data>
 </node>
 <node id="21">
-<data key="label">Phase 2.2: AHC</data>
+<data key="label">AHC</data>
 <data key="invoke">orgminer.OrganizationalModelMiner.clustering.hierarchical.ahc</data>
-<data key="params">{'n_groups': list(range(10, 11)), 'method': 'ward', 'metric': 'euclidean'}</data>
-<data key="phase">2.2</data>
+<data key="params">{'n_groups': list(range(2, 11)), 'method': 'ward', 'metric': 'euclidean'}</data>
+<data key="phase">2: Resource Grouping Discovery</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
@@ -94,51 +82,51 @@
 </node>
 <node id="20">
 <data key="label">input log: BPIC17</data>
-<data key="invoke">orgminer.IO.reader.read_disco_csv</data>
-<data key="params">{'filepath': './input/bpic17.csv', 'mapping': {"(case) LoanGoal": 8}}</data>
+<data key="invoke">orgminer.IO.reader.read_xes</data>
+<data key="params">{'filepath': './data/bpic17.xes'}</data>
 <data key="phase">0</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">-2430.9436</data>
-<data key="y">-70.39867</data>
+<data key="x">-1667.1101</data>
+<data key="y">-269.23907</data>
 </node>
 <node id="22">
-<data key="label">Phase 1: CT + AT + TT (case attribute)</data>
+<data key="label">CT+AT+TT (case attribute)</data>
 <data key="invoke">orgminer.ExecutionModeMiner.direct_groupby.FullMiner</data>
-<data key="params">{'case_attr_name': '(case) LoanGoal', 'resolution': 'weekday'}</data>
-<data key="phase">1</data>
+<data key="params">{'case_attr_name': '(case)_LoanGoal', 'resolution': 'weekday'}</data>
+<data key="phase">1: Execution Mode Learning</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">-1642.0961</data>
-<data key="y">-300.4847</data>
+<data key="x">-887.6144</data>
+<data key="y">-332.1097</data>
 </node>
 <node id="26">
-<data key="label">Phase 2.3: OverallScore</data>
+<data key="label">OverallScore</data>
 <data key="invoke">orgminer.OrganizationalModelMiner.mode_assignment.overall_score</data>
-<data key="params">{'p': 0.5}</data>
-<data key="phase">2.3</data>
+<data key="params">{'auto_search': True}</data>
+<data key="phase">3: Execution Mode Assignment</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">1205.9058</data>
-<data key="y">-451.9031</data>
+<data key="x">1218.4775</data>
+<data key="y">-514.32776</data>
 </node>
 <node id="30">
-<data key="label">Phase 1: CT + AT + TT (trace clustering)</data>
+<data key="label">CT+AT+TT (trace clustering)</data>
 <data key="invoke">orgminer.ExecutionModeMiner.informed_groupby.TraceClusteringFullMiner</data>
-<data key="params">{'fn_partition': 'input/extra_knowledge/bpic17.bosek5.tcreport', 'resolution': 'weekday'}</data>
-<data key="phase">1</data>
+<data key="params">{'fn_partition': './trace_clustering_reports/bpic17.bosek14.tcreport', 'resolution': 'weekday'}</data>
+<data key="phase">1: Execution Mode Learning</data>
 <data key="size">25.0</data>
 <data key="r">192</data>
 <data key="g">192</data>
 <data key="b">192</data>
-<data key="x">-1720.0056</data>
-<data key="y">-641.27026</data>
+<data key="x">-852.5776</data>
+<data key="y">-668.3774</data>
 </node>
 <edge id="170" source="20" target="2">
 <data key="weight">1.0</data>
@@ -146,16 +134,10 @@
 <edge id="169" source="0" target="20">
 <data key="weight">1.0</data>
 </edge>
-<edge id="167" source="2" target="3">
-<data key="weight">1.0</data>
-</edge>
 <edge id="142" source="21" target="8">
 <data key="weight">1.0</data>
 </edge>
 <edge id="144" source="5" target="8">
-<data key="weight">1.0</data>
-</edge>
-<edge id="176" source="22" target="3">
 <data key="weight">1.0</data>
 </edge>
 <edge id="147" source="8" target="13">
@@ -170,19 +152,28 @@
 <edge id="165" source="26" target="13">
 <data key="weight">1.0</data>
 </edge>
-<edge id="171" source="3" target="21">
-<data key="weight">1.0</data>
-</edge>
-<edge id="172" source="3" target="5">
-<data key="weight">1.0</data>
-</edge>
 <edge id="175" source="20" target="22">
 <data key="weight">1.0</data>
 </edge>
 <edge id="177" source="20" target="30">
 <data key="weight">1.0</data>
 </edge>
-<edge id="178" source="30" target="3">
+<edge id="179" source="2" target="21">
+<data key="weight">1.0</data>
+</edge>
+<edge id="180" source="2" target="5">
+<data key="weight">1.0</data>
+</edge>
+<edge id="181" source="22" target="21">
+<data key="weight">1.0</data>
+</edge>
+<edge id="182" source="22" target="5">
+<data key="weight">1.0</data>
+</edge>
+<edge id="183" source="30" target="21">
+<data key="weight">1.0</data>
+</edge>
+<edge id="184" source="30" target="5">
 <data key="weight">1.0</data>
 </edge>
 </graph>

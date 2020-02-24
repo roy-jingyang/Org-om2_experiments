@@ -18,4 +18,5 @@ external/
 
 # Ignore local-only files
 *local_only/
+**/*local_only
 
