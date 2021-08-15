@@ -15,29 +15,23 @@ fnout_org_model = args.fnout_org_model
 
 if __name__ == '__main__':
     # read event log as input
-    from orgminer.IO.reader import read_xes
-    with open(fn_event_log, 'r', encoding='utf-8') as f:
-        el = read_xes(f)
+    from ordinor.io import read_xes
+    el = read_xes(fn_event_log)
 
-    # 1. Learn execution modes
-    from orgminer.ExecutionModeMiner import direct_groupby, informed_groupby
+    # 1. Learn execution contexts
+    from ordinor.execution_context import \
+        ATonlyMiner, FullMiner, TraceClusteringFullMiner
     print('Input a number to choose a solution:')
     print('\t0. ATonly')
-    #print('\t11. CTonly (requires specifying a case attribute)')
-    #print('\t12. CT+AT (requires specifying a case attribute)')
-    #print('\t13. AT+TT')
     print('\t1. CT+AT+TT (case attribute)')
-    #print('\t14. CTonly (trace clustering)')
     print('\t2. CT+AT+TT (trace clustering)')
-    mode_learning_option = int(input())
+    ec_learning_option = int(input())
 
-    if mode_learning_option in [11, 12, 13, 14]:
-        raise NotImplementedError
+    if ec_learning_option == 0:
+        ec_miner = ATonlyMiner(el)
 
-    elif mode_learning_option == 0:
-        exec_mode_miner = direct_groupby.ATonlyMiner(el)
-
-    elif mode_learning_option == 1:
+    elif ec_learning_option == 1:
+        print(el.columns)
         print('\tSpecify the name of the case attribute:', end=' ')
         sp_case_attr_name = input()
         print('\tInput a number to choose a desired time unit:')
@@ -45,32 +39,11 @@ if __name__ == '__main__':
         for i, unit in enumerate(units):
             print('\t\t{}. {}'.format(i, unit))
         sp_time_unit = units[int(input())]
-        exec_mode_miner = direct_groupby.FullMiner(el,
+        ec_miner = FullMiner(el,
             case_attr_name=sp_case_attr_name,
             resolution=sp_time_unit)
 
-    elif mode_learning_option == 11: # NOTE: temporarily disabled
-        print('Specify the name of the case attribute:', end=' ')
-        sp_case_attr_name = input()
-        exec_mode_miner = direct_groupby.CTonlyMiner(el, 
-            case_attr_name=sp_case_attr_name)
-    elif mode_learning_option == 12: # NOTE: temporarily disabled
-        print('Specify the name of the case attribute:', end=' ')
-        sp_case_attr_name = input()
-        exec_mode_miner = direct_groupby.ATCTMiner(el,
-            case_attr_name=sp_case_attr_name)
-    elif mode_learning_option == 13: # NOTE: temporarily disabled
-        print('Input the desired datetime resolution:', end=' ')
-        resolution = input()
-        exec_mode_miner = direct_groupby.ATTTMiner(el, 
-            resolution=resolution)
-    elif mode_learning_option == 14: # NOTE: temporarily disabled
-        print('Input the path to the trace clustering report file:', end=' ')
-        fn_partition = input()
-        exec_mode_miner = informed_groupby.TraceClusteringCTMiner(
-            el, fn_partition=fn_partition)
-
-    elif mode_learning_option == 2:
+    elif ec_learning_option == 2:
         print('Input the path to the trace clustering report file:', end=' ')
         fn_partition = input()
         print('\tInput a number to choose a desired time unit:')
@@ -78,71 +51,29 @@ if __name__ == '__main__':
         for i, unit in enumerate(units):
             print('\t\t{}. {}'.format(i, unit))
         sp_time_unit = units[int(input())]
-        exec_mode_miner = informed_groupby.TraceClusteringFullMiner(el,
+        ec_miner = TraceClusteringFullMiner(el,
             fn_partition=fn_partition,
             resolution=sp_time_unit)
     else:
         raise ValueError('Option not recognized')
 
-    with open(fnout_org_model + '.mode_mappings', 'w') as fout:
-        exec_mode_miner.to_file(fout)
-        print('\n[Execution mode mappings exported]')
+    with open(fnout_org_model + '.co_mappings', 'wb') as fout:
+        ec_miner.to_file(fout)
+        print('\n[Execution context mappings exported]')
     # Derive resource log
-    rl = exec_mode_miner.derive_resource_log(el)
+    rl = ec_miner.derive_resource_log(el)
 
 
     # 2. Discover organizational groups
     print('Input a number to choose a solution:')
-    #print('\t10. Default Mining (Song)')
-    #print('\t11. Metric based on Joint Activities/Cases (Song)')
     print('\t0. AHC: Hierarchical Organizational Mining (Song and van der Aalst, 2008)')
-    #print('\t13. Overlapping Community Detection')
-    #print('\t14. GMM: Gaussian Mixture Model')
     print('\t1. MOC: Model based Overlapping Clustering (Yang et al., 2018)')
-    #print('\t16. Fuzzy c-means')
     mining_option = int(input())
 
     if mining_option in [10, 11, 13, 14, 16]:
         raise NotImplementedError
 
-    elif mining_option == 10: #NOTE: temporarily disabled
-        from orgminer.OrganizationalModelMiner.base import default_mining
-        ogs = default_mining(rl)
-
-    elif mining_option == 11: #NOTE: temporarily disabled
-        print('Input desired range (e.g. [low, high)) of number of groups:',
-            end=' ')
-        num_groups = input()
-        num_groups = num_groups[1:-1].split(',')
-        num_groups = list(range(int(num_groups[0]), int(num_groups[1])))
-
-        # select method (MJA/MJC)
-        print('Input a number to choose a method:')
-        print('\t0. MJA')
-        print('\t1. MJC')
-        print('Option: ', end='')
-        method_option = int(input())
-        if method_option == 0:
-            # build profiles
-            from orgminer.ResourceProfiler.raw_profiler import \
-                count_execution_frequency
-            profiles = count_execution_frequency(rl, scale='log')
-            from orgminer.OrganizationalModelMiner.community.graph_partitioning\
-                import mja
-            print('Input a number to choose a metric:')
-            metrics = ['euclidean', 'correlation']
-            print('\t0. Distance (Euclidean)')
-            print('\t1. PCC')
-            print('Option: ', end='')
-            metric_option = int(input())
-            ogs = mja(profiles, num_groups, metric=metrics[metric_option])
-        elif method_option == 1:
-            from orgminer.OrganizationalModelMiner.community.graph_partitioning\
-                import mjc
-            ogs = mjc(el, num_groups)
-        else:
-            raise ValueError
-    elif mining_option == 0:
+    if mining_option == 0:
         print('Input desired range (e.g. [low, high)) of number of groups:',
             end=' ')
         num_groups = input()
@@ -150,69 +81,11 @@ if __name__ == '__main__':
         num_groups = list(range(int(num_groups[0]), int(num_groups[1])))
 
         # build profiles
-        from orgminer.ResourceProfiler.raw_profiler import count_execution_frequency
-        profiles = count_execution_frequency(rl, scale='log')
-        from orgminer.OrganizationalModelMiner.clustering.hierarchical \
-            import ahc
-        ogs, og_hcy = ahc(profiles, num_groups, method='ward')
+        from ordinor.org_model_miner.resource_features import direct_count
+        profiles = direct_count(rl, scale='log')
+        from ordinor.org_model_miner.group_discovery import ahc
+        ogs = ahc(profiles, num_groups, method='ward')
 
-        #og_hcy.to_csv(fnout_org_model + '_hierarchy')
-
-    elif mining_option == 13: #NOTE: temporarily disabled
-        # build profiles
-        from orgminer.ResourceProfiler.raw_profiler import count_execution_frequency
-        profiles = count_execution_frequency(rl, scale='log')
-
-        from orgminer.OrganizationalModelMiner.community import overlap
-        print('Input a number to choose a method:')
-        print('\t0. CFinder (Clique Percolation Method)') 
-        print('\t1. LN + Louvain (Link partitioning)')
-        print('\t2. OSLOM (Local expansion and optimization)')
-        print('\t3. COPRA (Agent-based dynamical methods)')
-        print('\t4. SLPA (Agent-based dynamical methods)')
-        print('Option: ', end='')
-        method_option = int(input())
-        if method_option == 0:
-            ogs = overlap.clique_percolation(
-                profiles, metric='correlation')
-        elif method_option == 1:
-            print('Input the desired number of groups:', end=' ')
-            num_groups = int(input())
-            ogs = overlap.link_partitioning(
-                profiles, num_groups, metric='correlation')
-        elif method_option == 2:
-            ogs = overlap.local_expansion(
-                profiles, metric='correlation')
-        elif method_option == 3:
-            ogs = overlap.agent_copra(
-                profiles, metric='correlation')
-        elif method_option == 4:
-            ogs = overlap.agent_slpa(
-                profiles, metric='correlation')
-        else:
-            raise ValueError
-
-    elif mining_option == 14: #NOTE: temporarily disabled
-        print('Input desired range (e.g. [low, high)) of number of groups:',
-            end=' ')
-        num_groups = input()
-        num_groups = num_groups[1:-1].split(',')
-        num_groups = list(range(int(num_groups[0]), int(num_groups[1])))
-
-        # build profiles
-        from orgminer.ResourceProfiler.raw_profiler import count_execution_frequency
-        profiles = count_execution_frequency(rl, scale='log')
-
-        print('Input a threshold value [0, 1), in order to determine the ' +
-            'resource membership:', end=' ')
-        user_selected_threshold = input()
-        user_selected_threshold = (float(user_selected_threshold)
-            if user_selected_threshold != '' else None)
-
-        from orgminer.OrganizationalModelMiner.clustering.overlap import gmm
-        ogs = gmm(profiles, num_groups, 
-            threshold=user_selected_threshold,
-            init='kmeans')
     elif mining_option == 1:
         print('Input desired range (e.g. [low, high)) of number of groups:',
             end=' ')
@@ -221,41 +94,17 @@ if __name__ == '__main__':
         num_groups = list(range(int(num_groups[0]), int(num_groups[1])))
 
         # build profiles
-        from orgminer.ResourceProfiler.raw_profiler import count_execution_frequency
-        profiles = count_execution_frequency(rl, scale='log')
+        from ordinor.org_model_miner.resource_features import direct_count
+        profiles = direct_count(rl, scale='log')
 
-        from orgminer.OrganizationalModelMiner.clustering.overlap import moc
-        ogs = moc(profiles, num_groups,
-            init='kmeans')
-    elif mining_option == 16: #NOTE: temporarily disabled
-        print('Input desired range (e.g. [low, high)) of number of groups:',
-            end=' ')
-        num_groups = input()
-        num_groups = num_groups[1:-1].split(',')
-        num_groups = list(range(int(num_groups[0]), int(num_groups[1])))
-
-        # build profiles
-        from orgminer.ResourceProfiler.raw_profiler import count_execution_frequency
-        profiles = count_execution_frequency(rl, scale='log')
-
-        print('Input a threshold value [0, 1), in order to determine the ' +
-                'resource membership (Enter to use a "null" threshold):',
-                end=' ')
-        user_selected_threshold = input()
-        user_selected_threshold = (float(user_selected_threshold)
-                if user_selected_threshold != '' else None)
-
-        from orgminer.OrganizationalModelMiner.clustering.overlap import fcm
-        ogs = fcm(profiles, num_groups, 
-            threshold=user_selected_threshold,
-            init='kmeans')
-
+        from ordinor.org_model_miner.group_discovery import moc
+        ogs = moc(profiles, num_groups, init='kmeans')
     else:
         raise Exception('Failed to recognize input option!')
 
 
-    # 3. Assign execution modes to groups
-    from orgminer.OrganizationalModelMiner.mode_assignment import \
+    # 3. Assign execution contexts to groups
+    from ordinor.org_model_miner.group_profiling import\
         full_recall, overall_score
     print('Input a number to choose a solution:')
     print('\t0. FullRecall')
@@ -280,21 +129,13 @@ if __name__ == '__main__':
 
     print('-' * 80)
     measure_values = list()
-    '''
-    from orgminer.Evaluation.m2m.cluster_validation import silhouette_score
-    from numpy import mean
-    silhouette_score = mean(list(silhouette_score(ogs, profiles).values()))
-    print('Silhouette\t= {:.6f}'.format(silhouette_score))
-    print('-' * 80)
-    print()
-    '''
     
-    from orgminer.Evaluation.l2m import conformance
-    fitness_score = conformance.fitness(rl, om)
+    from ordinor.conformance import fitness, precision
+    fitness_score = fitness(rl, om)
     print('Fitness\t\t= {:.3f}'.format(fitness_score))
     measure_values.append(fitness_score)
     print()
-    precision_score = conformance.precision(rl, om)
+    precision_score = precision(rl, om)
     print('Precision\t= {:.3f}'.format(precision_score))
     measure_values.append(precision_score)
     print()

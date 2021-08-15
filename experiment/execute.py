@@ -4,12 +4,12 @@
 """
 This program delivers a batch evaluation script for experiments. It allows user
 to configure the components to be included as the setup and then save the
-setup. The program can then load the setup from the save file, and starts to
-instantiate all possible test instances following the setup and exectues.
+setup. The program can then load the setup from the saved file, and starts to
+instantiate all possible test instances following the setup and executes.
 
 The underlying data structure of the setup is an unweighted acyclic directed
 graph, where:
-    * each node represents a step in the whole approach (usually, a method
+    * each node represents a step in the entire approach (usually, a method
     from a module should be invoked), and all the configuration and tag
     information related to the method used is stored as node attributes;
     * each node is described by a name specified by the user, and contains the
@@ -39,7 +39,6 @@ def _import_block(path_invoke):
 
 def execute(setup, seq_ix, exp_dirpath):
     sequence = list(setup.nodes[ix] for ix in seq_ix)
-    test_name = '-'.join(step['label'] for step in sequence)
 
     # Step 0: input an event log
     step = 0
@@ -49,25 +48,23 @@ def execute(setup, seq_ix, exp_dirpath):
         exit('[Node Error]\t"{}"'.format(sequence[step]['label']))
     else:
         params = eval(params)
-    with open(params['filepath'], 'r') as f:
-        el = reader(f)
+    el = reader(params['filepath'])
 
-    # define execution modes
+    # determine execution contexts
     step += 1
-    cls_exec_mode_miner = _import_block(sequence[step]['invoke'])
-    exec_mode_miner_name = sequence[step]['label'].replace(' ', '')
+    cls_ec_miner = _import_block(sequence[step]['invoke'])
+    ec_miner_name = sequence[step]['label'].replace(' ', '')
     params = sequence[step].get('params', None)
     if params is None:
-        exec_mode_miner = cls_exec_mode_miner(el)
+        ec_miner = cls_ec_miner(el)
     else:
         params = eval(params)
-        exec_mode_miner = cls_exec_mode_miner(el, **params)
-    rl = exec_mode_miner.derive_resource_log(el)
+        ec_miner = cls_ec_miner(el, **params)
+    rl = ec_miner.derive_resource_log(el)
 
     # characterize resources
-    from orgminer.ResourceProfiler.raw_profiler import \
-        count_execution_frequency
-    profiles = count_execution_frequency(rl)
+    from ordinor.org_model_miner.resource_features import direct_count
+    profiles = direct_count(rl)
 
     # discover resource grouping
     step += 1
@@ -78,15 +75,11 @@ def execute(setup, seq_ix, exp_dirpath):
         ogs = discoverer(profiles)
     else:
         params = eval(params)
-        if 'metric' in params:
-            prox_metric = params['metric']
-        else:
-            prox_metric = None
         ogs = discoverer(profiles, **params)
     if type(ogs) is tuple:
         ogs = ogs[0]
 
-    # assign execution modes
+    # profile resource groups
     step += 1
     assigner = _import_block(sequence[step]['invoke'])
     assigner_name = sequence[step]['label'].replace(' ', '')
@@ -98,54 +91,23 @@ def execute(setup, seq_ix, exp_dirpath):
         params = eval(params)
         om = assigner(ogs, rl, **params)
 
-    # TODO: Hard-coded evalution measure (TBD)
-    '''
-    # 1. Intrinsic evaluation of clustering (by Silhouette score)
-    from orgminer.Evaluation.m2m.cluster_validation import silhouette_score
-    from numpy import mean
-    if prox_metric is not None:
-        silhouette = mean(list(
-            silhouette_score(ogs, profiles, metric=prox_metric).values()))
-    else:
-        silhouette = mean(list(
-            silhouette_score(ogs, profiles).values()))
-    '''
-
-    # TODO: Hard-coded evalution measure (TBD) cont.
-    # 2. (New) Fitness & Precision values
-    from orgminer.Evaluation.l2m.conformance import fitness, precision
+    # model evaluation
+    from ordinor.conformance import fitness, precision
     fitness = fitness(rl, om)
     precision = precision(rl, om)
 
     k = om.group_number
-    '''
-    # 3. Overlapping Density & Overlapping Diversity (avg.)
-    resources = om.resources
-    n_ov_res = 0
-    n_ov_res_membership = 0
-    for r in resources:
-        n_res_membership = len(om.find_groups(r))
-        if n_res_membership == 1:
-            pass
-        else:
-            n_ov_res += 1
-            n_ov_res_membership += n_res_membership
-
-    ov_density = n_ov_res / len(resources)
-    avg_ov_diversity = (n_ov_res_membership / n_ov_res 
-            if n_ov_res > 0 else float('nan'))
-    '''
     
     # export organizational models
     fnout = '{}-{}-{}.om'.format(
-        exec_mode_miner_name, discoverer_name, assigner_name)
+        ec_miner_name, discoverer_name, assigner_name)
     with open(join(exp_dirpath, fnout), 'w') as fout:
         om.to_file_csv(fout)
 
     return ('{}-{}-{}'.format(
-        exec_mode_miner_name, discoverer_name, assigner_name), 
-        #silhouette, 
-        k, fitness, precision)
+        ec_miner_name, discoverer_name, assigner_name), 
+        k, fitness, precision
+    )
 
 if __name__ == '__main__':
     fn_setup = sys.argv[1]
@@ -170,5 +132,6 @@ if __name__ == '__main__':
         for i in range(n_tests):
             writer.writerow(
                 [name] + 
-                l_test_results[i])
+                l_test_results[i]
+            )
     
