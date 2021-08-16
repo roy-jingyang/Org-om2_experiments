@@ -1,3 +1,3 @@
 
-See [here](https://orgminer.readthedocs.io/en/latest/examples/infsyst2020yang-replicate.html) for an instruction on the usage.
+See [here](https://ordinor.readthedocs.io/en/latest/examples/2021om2-experiments.html) for an instruction on the usage.
 
